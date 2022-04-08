@@ -1,5 +1,11 @@
 (* Transaction memory models CCV, CC, CM *)
 
+(* 
+
+ This file defines traces for transactional memories
+  
+*)
+
 Require Import ZArith.
 Require Import Ensembles.
 Require Import util.
@@ -76,56 +82,38 @@ Global Hint Resolve eqLoc_dec : equality.
 
 (* Transactions related *)
 
-Definition Tid := nat.
-
-Inductive Tactions : Set :=
-  | begint : Tactions
-  | endt : Tactions
-  | delt : Tactions.
-
-Check Tactions.
-
- 
-Lemma eqTactions_dec : forall (x y: Tactions), {x=y} + {x <> y}.
-Proof.
-decide_equality.
-Defined.
-Global Hint Resolve eqTactions_dec : equality.
-
 
 Inductive Action : Set :=
   | Access : Dirn -> Location -> Value -> Action
-  | Trans : Tactions -> Tid -> Proc -> Action.
-
-Check Action.
-
 Lemma eqAction_dec : forall (x y: Action), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
 Global Hint Resolve eqAction_dec : equality.
 
-Record Event := mkev {
-  (* eiid : Eiid; *)
-  iiid : Iiid;
-  tiid  : Tid;
-  action : Action}.
 
-Check Event.
+(* Record Event := mkev { *)
+(*   (* eiid : Eiid; *) *)
+(*   iiid : Iiid; *)
+(*   tiid  : Tid; *)
+(*   action : Action}. *)
 
-Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}.
-Proof.
-decide_equality.
-Defined.
-Global Hint Resolve eqEv_dec : equality.
+(* Check Event. *)
 
-Lemma eqEvc_dec : forall (x y: Event*Event), {x=y} + {x <> y}.
-Proof.
-decide_equality.
-Defined.
-Global Hint Resolve eqEvc_dec : equality.
+(* Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}. *)
+(* Proof. *)
+(* decide_equality. *)
+(* Defined. *)
+(* Global Hint Resolve eqEv_dec : equality. *)
+
+(* Lemma eqEvc_dec : forall (x y: Event*Event), {x=y} + {x <> y}. *)
+(* Proof. *)
+(* decide_equality. *)
+(* Defined. *)
+(* Global Hint Resolve eqEvc_dec : equality. *)
 
 
+Definition Tid := nat.
 Lemma eqTid_dec : forall (x y: Tid), {x=y} + {x<>y}.
 Proof.
 decide_equality.
@@ -134,8 +122,20 @@ Global Hint Resolve eqTid_dec : equality.
 
 Record Transaction := mktrans {
   tid : Tid; 
-  tevents : set Event;
+  tevents : set Action;
   tproc : Proc}.
 
+Lemma eqTr_dec : forall (x y: Transaction), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqTr_dec : equality.
 
-(* Define transaction delivery *)
+Lemma eqTrc_dec : forall (x y: Transaction*Transaction), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqTrc_dec : equality.
+
+
+(* Define traces *)
