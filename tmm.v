@@ -18,7 +18,7 @@ Lemma eqValue_dec : forall (x y: Value), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqValue_dec : equality.
+Global Hint Resolve eqValue_dec : equality.
 (*Hypothesis eqValue_dec : forall (x y: Value), {x=y} + {x <> y}.*)
 
 
@@ -27,7 +27,7 @@ Lemma eqProc_dec : forall (x y: Proc), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqProc_dec : equality.
+Global Hint Resolve eqProc_dec : equality.
 (*Hypothesis eqProc_dec : forall (x y: Proc), {x=y} + {x <> y}.*)
 
 Definition program_order_index := nat.
@@ -35,7 +35,7 @@ Lemma eqPoi_dec : forall (x y: program_order_index), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined. 
-Hint Resolve eqPoi_dec : equality.
+Global Hint Resolve eqPoi_dec : equality.
 
 Record Iiid  : Set := mkiiid {
   proc : Proc;
@@ -44,14 +44,17 @@ Lemma eqIiid_dec : forall (x y: Iiid), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined. 
-Hint Resolve eqIiid_dec : equality.
+Global Hint Resolve eqIiid_dec : equality.
 
-Definition Eiid := nat.
+Check Iiid.
+
+(*Definition Eiid := nat.
 Lemma eqEiid_dec : forall (x y: Eiid), {x=y} + {x<>y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqEiid_dec : equality.
+Global Hint Resolve eqEiid_dec : equality.
+*)
 
 Inductive Dirn : Set :=
   | R : Dirn
@@ -60,7 +63,7 @@ Lemma eqDirn_dec : forall (x y: Dirn), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqDirn_dec : equality.
+Global Hint Resolve eqDirn_dec : equality.
 
 Definition Location := Address.
 
@@ -68,38 +71,63 @@ Lemma eqLoc_dec : forall (x y: Location), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqLoc_dec : equality.
+Global Hint Resolve eqLoc_dec : equality.
+
+
+(* Transactions related *)
+
+Definition Tid := nat.
+
+Inductive Tirn : Set :=
+  | begint : Tirn
+  | endt : Tirn
+  | delt : Tirn.
+Check Tirn.
+
+(*Inductive BeginT : Set := *)
+
+Lemma eqTirn_dec : forall (x y: Tirn), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqTirn_dec : equality.
+
 
 Inductive Action : Set :=
-  | Access : Dirn -> Location -> Value -> Action.
+  | Access : Dirn -> Location -> Value -> Action
+  | Trans : begint -> Tid -> Proc -> Action.
+
+Check Action.
+
 Lemma eqAction_dec : forall (x y: Action), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqAction_dec : equality.
+Global Hint Resolve eqAction_dec : equality.
 
 Record Event := mkev {
   (* eiid : Eiid; *)
   iiid : Iiid;
   action : Action}.
+
 Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqEv_dec : equality.
+Global Hint Resolve eqEv_dec : equality.
 
 Lemma eqEvc_dec : forall (x y: Event*Event), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqEvc_dec : equality.
+Global Hint Resolve eqEvc_dec : equality.
 
-Definition Tid := nat.
+
 Lemma eqTid_dec : forall (x y: Tid), {x=y} + {x<>y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqTid_dec : equality.
+Global Hint Resolve eqTid_dec : equality.
 
 Record Transaction := mktrans {
   tid : Tid; 
