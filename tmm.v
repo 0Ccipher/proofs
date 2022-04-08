@@ -78,24 +78,24 @@ Global Hint Resolve eqLoc_dec : equality.
 
 Definition Tid := nat.
 
-Inductive Tirn : Set :=
-  | begint : Tirn
-  | endt : Tirn
-  | delt : Tirn.
-Check Tirn.
+Inductive Tactions : Set :=
+  | begint : Tactions
+  | endt : Tactions
+  | delt : Tactions.
 
-(*Inductive BeginT : Set := *)
+Check Tactions.
 
-Lemma eqTirn_dec : forall (x y: Tirn), {x=y} + {x <> y}.
+ 
+Lemma eqTactions_dec : forall (x y: Tactions), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
-Global Hint Resolve eqTirn_dec : equality.
+Global Hint Resolve eqTactions_dec : equality.
 
 
 Inductive Action : Set :=
   | Access : Dirn -> Location -> Value -> Action
-  | Trans : begint -> Tid -> Proc -> Action.
+  | Trans : Tactions -> Tid -> Proc -> Action.
 
 Check Action.
 
@@ -108,7 +108,10 @@ Global Hint Resolve eqAction_dec : equality.
 Record Event := mkev {
   (* eiid : Eiid; *)
   iiid : Iiid;
+  tiid  : Tid;
   action : Action}.
+
+Check Event.
 
 Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}.
 Proof.
@@ -131,6 +134,8 @@ Global Hint Resolve eqTid_dec : equality.
 
 Record Transaction := mktrans {
   tid : Tid; 
-  es : set Event;
+  tevents : set Event;
   tproc : Proc}.
 
+
+(* Define transaction delivery *)
