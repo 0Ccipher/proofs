@@ -12,11 +12,11 @@ Definition Address := Word.
 
 Definition Value := Word.
 Hypothesis eqValue_dec : forall (x y: Value), {x=y} + {x <> y}.
-Hint Resolve eqValue_dec : equality.
+(*Hint Resolve eqValue_dec : equality.*)
 
 Definition Proc := nat.
 Hypothesis eqProc_dec : forall (x y: Proc), {x=y} + {x <> y}.
-Hint Resolve eqProc_dec : equality.
+(*Hint Resolve eqProc_dec : equality.*)
 
 Definition program_order_index := nat.
 Lemma eqPoi_dec : forall (x y: program_order_index), {x=y} + {x <> y}.
@@ -32,14 +32,14 @@ Lemma eqIiid_dec : forall (x y: Iiid), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined. 
-Hint Resolve eqIiid_dec : equality.
+(*Hint Resolve eqIiid_dec : equality.*)
 
 Definition Eiid := nat.
 Lemma eqEiid_dec : forall (x y: Eiid), {x=y} + {x<>y}.
 Proof.
 decide_equality.
 Defined.
-Hint Resolve eqEiid_dec : equality.
+(*Hint Resolve eqEiid_dec : equality.*)
 
 Inductive Dirn : Set :=
   | R : Dirn
