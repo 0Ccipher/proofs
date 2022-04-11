@@ -153,6 +153,7 @@ Record Trans_struct : Type := mkts {
   iico : Rln Transaction
 }. 
 
+(* tdo: Why do we need po?*)
 Definition po (ts: Trans_struct) : set (Transaction*Transaction) :=
   fun c => match c with (t1,t2) =>
    (* both transactions belong to same process *)
@@ -174,12 +175,12 @@ Definition po_strict (ts: Trans_struct) : Rln Transaction :=
   (* both t1 and t2 are in the set of transactions ts *)
   (In _ ts.(transactions) t1) /\
   (In _ ts.(transactions) t2).
-Check po_strict.
 
-Definition po_iico (ts:Trans_struct) : Rln Transaction :=
+
+Definition po_or_iico (ts:Trans_struct) : Rln Transaction :=
   fun t1 => fun t2 =>
     (po_strict ts) t1 t2 \/ (iico ts) t1 t2.
-Check po_iico.
+
 
 
 (* Define traces *)
