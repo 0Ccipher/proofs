@@ -182,5 +182,33 @@ Definition po_or_iico (ts:Trans_struct) : Rln Transaction :=
     (po_strict ts) t1 t2 \/ (iico ts) t1 t2.
 
 
+Definition reads (ts:Trans_struct) : set Transaction :=
+  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, In _ t.(tevents) (Access R l v)). 
 
+Definition writes (ts:Trans_struct) : set Transaction :=
+  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, In _ t.(tevents) (Access W l v)). 
+
+
+Definition well_formed_trans_structure (ts:Trans_struct) : Prop :=
+  (forall x y, po_or_iico ts x y -> x.(transaction).(iid).(proc) = y.(transaction).(iid).(proc)) /\
+  (forall t1 t2, In _ ts.(transactions) t1 -> In _ ts.(transactions) t2 ->
+   (t1.(transaction).(tid) = t2.(transaction).(tid)) /\ 
+   (t1.(transaction).(iid) = t2.(transaction).(iid)) -> (t1 = t2)) /\
+   Included _ (dom (iico ts)) ts.(transactions) /\
+   Included _ (ran (iico ts)) ts.(transactions) /\
+   acyclic (iico ts) /\ 
+   (forall x y, transactions ts x /\ transactions ts y /\ 
+      x.(transaction).(iid).(poi) = x.(transaction).(iid).(poi)
+     /\ x.(transaction).(iid).(proc) = y.(transaction).(iid).(proc) -> x <> y -> iico ts x y) /\
+   (forall t1 t2, (iico ts) t1 t2 -> (t1.(transaction).(iid) = t2.(transaction).(iid))) /\
+   trans (iico ts).
+
+(* Coherence Order *)
+Definition Coherence := Rln Transaction.
+
+Definition write_to (t:Transaction) (l:Location) : Prop :=
+  exists v,In _ t.(tevents) (Access W l v).
+
+Definition writes_to_same_loc_l (s:set Transaction) (l:Location) : set Transaction :=
+  fun t => In _ s t /\ write_to t l.
 (* Define traces *)
