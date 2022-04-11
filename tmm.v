@@ -43,16 +43,16 @@ decide_equality.
 Defined. 
 Global Hint Resolve eqPoi_dec : equality.
 
-Record Iiid  : Set := mkiiid {
+Record Iid : Set := mkiid {
   proc : Proc;
-  poi: program_order_index }.
-Lemma eqIiid_dec : forall (x y: Iiid), {x=y} + {x <> y}.
+  poi  : program_order_index }.
+Lemma eqIid_dec : forall (x y: Iid), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined. 
-Global Hint Resolve eqIiid_dec : equality.
+Global Hint Resolve eqIid_dec : equality.
 
-Check Iiid.
+Check Iid.
 
 (*Definition Eiid := nat.
 Lemma eqEiid_dec : forall (x y: Eiid), {x=y} + {x<>y}.
@@ -101,7 +101,7 @@ Defined.*)
 
 (* Record Event := mkev { *)
 (*   (* eiid : Eiid; *) *)
-(*   iiid : Iiid; *)
+(*   iid : Iiid; *)
 (*   tiid  : Tid; *)
 (*   action : Action}. *)
 
@@ -129,7 +129,7 @@ Global Hint Resolve eqTid_dec : equality.
  
 Record Trans := mktrans{
   tid : Tid;
-  iiid : Iiid}.
+  iid : Iid}.
 
 Lemma eqTr_dec : forall (x y: Trans), {x=y} + {x <> y}.
 Proof.
@@ -150,14 +150,15 @@ Check Transaction.
 
 Record Trans_struct : Type := mkts {
   transactions : set Transaction;
-  iico : Rln Transaction}. 
+  iico : Rln Transaction
+}. 
 
 Definition po (ts: Trans_struct) : set (Transaction*Transaction) :=
   fun c => match c with (t1,t2) =>
    (* both transactions belong to same process *)
-  (t1.(transaction).(iiid).(proc) = t2.(transaction).(iiid).(proc)) /\
+  (t1.(transaction).(iid).(proc) = t2.(transaction).(iid).(proc)) /\
   (* the program order index of t1 is less than equal to the program order index of t2 *)
-  (le t1.(transaction).(iiid).(poi) t2.(transaction).(iiid).(poi)) /\
+  (le t1.(transaction).(iid).(poi) t2.(transaction).(iid).(poi)) /\
   (* both t1 and t2 are in the set of transactions ts *)
   (In _ ts.(transactions) t1) /\
   (In _ ts.(transactions) t2)
@@ -167,9 +168,9 @@ Check po.
 Definition po_strict (ts: Trans_struct) : Rln Transaction :=
   fun t1 => fun t2 =>
    (* both transactions belong to same process *)
-  (t1.(transaction).(iiid).(proc) = t2.(transaction).(iiid).(proc)) /\
+  (t1.(transaction).(iid).(proc) = t2.(transaction).(iid).(proc)) /\
   (* the program order index of t1 is less than the program order index of t2 *)
-  (lt t1.(transaction).(iiid).(poi) t2.(transaction).(iiid).(poi)) /\
+  (lt t1.(transaction).(iid).(poi) t2.(transaction).(iid).(poi)) /\
   (* both t1 and t2 are in the set of transactions ts *)
   (In _ ts.(transactions) t1) /\
   (In _ ts.(transactions) t2).
