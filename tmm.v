@@ -127,23 +127,58 @@ decide_equality.
 Defined. 
 Global Hint Resolve eqTid_dec : equality.
  
+Record Trans := mktrans{
+  tid : Tid;
+  iiid : Iiid}.
 
-Record Transaction := mktrans {
-  tid : Tid; 
-  iiid : Iiid;
-  tevents : set Action}.
-
-Lemma eqTr_dec : forall (x y: Transaction), {x=y} + {x <> y}.
+Lemma eqTr_dec : forall (x y: Trans), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
 Global Hint Resolve eqTr_dec : equality.
 
-Lemma eqTrc_dec : forall (x y: Transaction*Transaction), {x=y} + {x <> y}.
+Lemma eqTrc_dec : forall (x y: Trans*Trans), {x=y} + {x <> y}.
 Proof.
 decide_equality.
 Defined.
 Global Hint Resolve eqTrc_dec : equality.
+
+Record Transaction := mktransaction {
+  transaction : Trans; 
+  tevents : set Action}.
+Check Transaction.
+
+Record Trans_struct : Type := mkts {
+  transactions : set Transaction;
+  iico : Rln Transaction}. 
+
+Definition po (ts: Trans_struct) : set (Transaction*Transaction) :=
+  fun c => match c with (t1,t2) =>
+   (* both transactions belong to same process *)
+  (t1.(transaction).(iiid).(proc) = t2.(transaction).(iiid).(proc)) /\
+  (* the program order index of t1 is less than equal to the program order index of t2 *)
+  (le t1.(transaction).(iiid).(poi) t2.(transaction).(iiid).(poi)) /\
+  (* both t1 and t2 are in the set of transactions ts *)
+  (In _ ts.(transactions) t1) /\
+  (In _ ts.(transactions) t2)
+  end.
+Check po.
+
+Definition po_strict (ts: Trans_struct) : Rln Transaction :=
+  fun t1 => fun t2 =>
+   (* both transactions belong to same process *)
+  (t1.(transaction).(iiid).(proc) = t2.(transaction).(iiid).(proc)) /\
+  (* the program order index of t1 is less than the program order index of t2 *)
+  (lt t1.(transaction).(iiid).(poi) t2.(transaction).(iiid).(poi)) /\
+  (* both t1 and t2 are in the set of transactions ts *)
+  (In _ ts.(transactions) t1) /\
+  (In _ ts.(transactions) t2).
+Check po_strict.
+
+Definition po_iico (ts:Trans_struct) : Rln Transaction :=
+  fun t1 => fun t2 =>
+    (po_strict ts) t1 t2 \/ (iico ts) t1 t2.
+Check po_iico.
 
 
 (* Define traces *)
