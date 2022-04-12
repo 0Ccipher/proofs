@@ -143,10 +143,38 @@ decide_equality.
 Defined.
 Global Hint Resolve eqTrc_dec : equality.
 
+Definition Eid := nat.
+Record tr_events := mktrevents {
+  tr : Tid;
+  eid : Eid;
+  act : Action}.
+Lemma eqtre_dec : forall (x y: tr_events), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqtre_dec : equality.
+
+Lemma eqtrec_dec : forall (x y: tr_events*tr_events), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqtrec_dec : equality.
+
 Record Transaction := mktransaction {
   transaction : Trans; 
-  tevents : set Action}.
+  tevents : set tr_events}.
 Check Transaction.
+(*Lemma eqTransaction_dec : forall (x y: Transaction), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqTransaction_dec : equality.
+
+Lemma eqTrs_dec : forall (x y: Transaction*Transaction), {x=y} + {x <> y}.
+Proof.
+decide_equality.
+Defined.
+Global Hint Resolve eqTrs_dec : equality.*)
 
 Record Trans_struct : Type := mkts {
   transactions : set Transaction;
@@ -183,10 +211,10 @@ Definition po_or_iico (ts:Trans_struct) : Rln Transaction :=
 
 
 Definition reads (ts:Trans_struct) : set Transaction :=
-  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, In _ t.(tevents) (Access R l v)). 
+  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, exists e, In _ t.(tevents) e /\ e.(act) = Access R l v). 
 
 Definition writes (ts:Trans_struct) : set Transaction :=
-  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, In _ t.(tevents) (Access W l v)). 
+  fun t => (In _ ts.(transactions) t) /\ (exists l, exists v, exists e, In _ t.(tevents) e /\ e.(act) = Access W l v). 
 
 
 Definition well_formed_trans_structure (ts:Trans_struct) : Prop :=
@@ -205,63 +233,20 @@ Definition well_formed_trans_structure (ts:Trans_struct) : Prop :=
 
 (* Coherence Order *)
 Definition Coherence := Rln Transaction.
-Check Coherence.
 
-Definition write_to_loc_l (t:Transaction) (l:Location) : Prop :=
-  exists v,In _ t.(tevents) (Access W l v).
+Definition write_to (t:Transaction) (l:Location) : Prop :=
+  exists v,exists e, In _ t.(tevents) e /\ e.(act) = Access W l v.
 
-Definition writes_to_same_loc_l (s:set Transaction) (l:Location) : set Transaction :=
-  fun t => In _ s t /\ write_to_loc_l t l.
+Definition writes_to_same_loc_l (ts:set Transaction) (l:Location) : set Transaction :=
+  fun t => In _ ts t /\ write_to t l.
 
-Check writes_to_same_loc_l.
-
-Definition coherence_well_formed (s:set Transaction) (co:Coherence) : Prop :=
-  (forall l: Location, linear_strict_order 
-     co (writes_to_same_loc_l s l)) (*Hws_tot*) /\
-  (forall x e, co x e ->
+Definition coherence_well_formed (ts:set Transaction) (co:Coherence) : Prop :=
+  (forall l : Location, linear_strict_order 
+     (rrestrict co (writes_to_same_loc_l ts l)) (writes_to_same_loc_l ts l)) (*Hws_tot*) /\
+  (forall t1 t2, co t1 t2 ->
    (exists l : Location,
-    In _ (writes_to_same_loc_l s l) x /\
-    In _ (writes_to_same_loc_l s l) e)) (*Hws_cands*).
+    In _ (writes_to_same_loc_l ts l) t1 /\
+    In _ (writes_to_same_loc_l ts l) t2)) (*Hws_cands*).
 
-Definition rrestrict_ts (A:Type) (r:Rln A) (s:set A) : Rln A := 
-    fun x => fun y =>
-    r x y /\ In _ s x /\ In _ s y.
-
-Definition coherence_well_formed_rrestrict (s:set Transaction) (co:Coherence) : Prop :=
-  (forall l: Location, linear_strict_order 
-     (rrestrict_ts co (writes_to_same_loc_l s l)) (writes_to_same_loc_l s l)) (*Hws_tot*) /\
-  (forall x e, co x e ->
-   (exists l : Location,
-    In _ (writes_to_same_loc_l s l) x /\
-    In _ (writes_to_same_loc_l s l) e)) (*Hws_cands*).
-
-Definition write_serialization_well_formed (s:set Transaction) (co:Coherence) := 
+Definition write_serialization_well_formed (s:set Event) (co:Coherence) := 
   coherence_well_formed s co.
-
-Definition Rfmap := Rln Transaction.
-
-Definition has_read_on_l (t:Transaction) (l:Location) : Prop :=
-  exists v, In _ t.(tevents) (Access R l v).
-(*
-Definition rfmaps (ts:set Transaction) : Rln Transaction :=
-  fun t1 => fun t2 =>
-  In _ ts t1 /\ In _ s t2 /\
-  exists l:Location, , write_to_loc_l t1 l /\ has_read_on_l t2 l /\ 
-    value_of e1 = value_of e2.
-
-Definition no_intervening_write (e1 e2:Event) (s:Rln Event): Prop :=
-  s e1 e2 /\
-  forall l, write_to e1 l ->
-    ~(exists e3, write_to e3 l /\ s e1 e3 /\ s e3 e2).
-
-Definition ls (E:Event_struct) : Rln Event :=
-  fun e1 => fun e2 =>
-    In _ (reads E) e1 /\ In _ (writes E) e2 /\ (po_iico E) e1 e2.
-
-Definition rfmaps_well_formed (E:Event_struct) (s:set Event) (rf:Rfmap) : Prop :=
-  (forall er, In _ (reads E) er -> exists ew, 
-     ((In _ s ew) /\ rf ew er)) /\ (*Hrf_init*) 
-  (forall e1 e2, rf e1 e2 -> (rfmaps s) e1 e2) /\ (*Hrf_cands*) 
-   (forall x w1 w2, rf w1 x -> rf w2 x ->
-    w1 = w2).  (*Hrf_uni*)*)
-

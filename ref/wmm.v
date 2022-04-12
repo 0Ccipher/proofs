@@ -73,6 +73,7 @@ Record Event := mkev {
 Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}.
 Proof.
 decide_equality.
+decide_equality.
 Defined.
 Hint Resolve eqEv_dec : equality.
 
