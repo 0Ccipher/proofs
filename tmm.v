@@ -209,7 +209,7 @@ Definition Coherence := Rln Transaction.
 Check Coherence.
 
 Definition write_to_loc_l (t:Transaction) (l:Location) : Prop :=
-  exists v,In _ t.(tevents) (Access W l v).
+  exists v, In _ t.(tevents) (Access W l v).
 
 Definition writes_to_same_loc_l (s:set Transaction) (l:Location) : set Transaction :=
   fun t => In _ s t /\ write_to_loc_l t l.
@@ -243,26 +243,27 @@ Definition Rfmap := Rln Transaction.
 
 Definition has_read_on_l (t:Transaction) (l:Location) : Prop :=
   exists v, In _ t.(tevents) (Access R l v).
-(*
+
 Definition rfmaps (ts:set Transaction) : Rln Transaction :=
   fun t1 => fun t2 =>
-  In _ ts t1 /\ In _ s t2 /\
-  exists l:Location, , write_to_loc_l t1 l /\ has_read_on_l t2 l /\ 
-    value_of e1 = value_of e2.
+  In _ ts t1 /\ In _ ts t2 /\
+  exists l:Location, exists v: Value,exists wact:Action, exists ract:Action ,
+    wact = Access W l v /\ ract = Access R l v /\
+    In _ t1.(tevents) wact /\ In _ t2.(tevents) ract.
 
-Definition no_intervening_write (e1 e2:Event) (s:Rln Event): Prop :=
-  s e1 e2 /\
-  forall l, write_to e1 l ->
-    ~(exists e3, write_to e3 l /\ s e1 e3 /\ s e3 e2).
+Definition no_intervening_write (t1 t2:Transaction) (ts:Rln Transaction): Prop :=
+  ts t1 t2 /\
+  forall l, write_to_loc_l t1 l ->
+    ~(exists t3, write_to_loc_l t3 l /\ ts t1 t3 /\ ts t3 t2).
 
-Definition ls (E:Event_struct) : Rln Event :=
-  fun e1 => fun e2 =>
-    In _ (reads E) e1 /\ In _ (writes E) e2 /\ (po_iico E) e1 e2.
+Definition ls (ts:Trans_struct) : Rln Transaction :=
+  fun t1 => fun t2 =>
+    In _ (reads ts) t1 /\ In _ (writes ts) t2 /\ (po_or_iico ts) t1 t2.
 
-Definition rfmaps_well_formed (E:Event_struct) (s:set Event) (rf:Rfmap) : Prop :=
-  (forall er, In _ (reads E) er -> exists ew, 
-     ((In _ s ew) /\ rf ew er)) /\ (*Hrf_init*) 
-  (forall e1 e2, rf e1 e2 -> (rfmaps s) e1 e2) /\ (*Hrf_cands*) 
-   (forall x w1 w2, rf w1 x -> rf w2 x ->
-    w1 = w2).  (*Hrf_uni*)*)
+Definition rfmaps_well_formed (ts:Trans_struct) (s:set Transaction) (rf:Rfmap) : Prop :=
+  (forall tr, In _ (reads ts) tr -> exists tw, 
+     ((In _ s tw) /\ rf tw tr)) /\ (*Hrf_init*) 
+  (forall t1 t2, rf t1 t2 -> (rfmaps s) t1 t2) /\ (*Hrf_cands*) 
+   (forall tr tw1 tw2, rf tw1 tr -> rf tw2 tr ->
+    tw1 = tw2).  (*Hrf_uni*)
 
