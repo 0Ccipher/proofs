@@ -265,5 +265,5 @@ Definition rfmaps_well_formed (ts:Trans_struct) (s:set Transaction) (rf:Rfmap) :
      ((In _ s tw) /\ rf tw tr)) /\ (*Hrf_init*) 
   (forall t1 t2, rf t1 t2 -> (rfmaps s) t1 t2) /\ (*Hrf_cands*) 
    (forall tr tw1 tw2, rf tw1 tr -> rf tw2 tr ->
-    tw1 = tw2).  (*Hrf_uni*)
+    tw1 = tw2).(*Hrf_uni*)
 
