@@ -251,6 +251,12 @@ Definition rfmaps (ts:set Transaction) : Rln Transaction :=
     wact = Access W l v /\ ract = Access R l v /\
     In _ t1.(tevents) wact /\ In _ t2.(tevents) ract.
 
+Definition rfmaps_on_loc_l (ts:set Transaction) (x:Location) (rf: Rfmap) : Rln Transaction :=
+  fun t1 => fun t2 =>
+  In _ ts t1 /\ In _ ts t2 /\ (exists v: Value,exists wact:Action, exists ract:Action ,
+    wact = Access W x v /\ ract = Access R x v /\
+    In _ t1.(tevents) wact /\ In _ t2.(tevents) ract).
+
 Definition no_intervening_write (t1 t2:Transaction) (ts:Rln Transaction): Prop :=
   ts t1 t2 /\
   forall l, write_to_loc_l t1 l ->
@@ -267,3 +273,7 @@ Definition rfmaps_well_formed (ts:Trans_struct) (s:set Transaction) (rf:Rfmap) :
    (forall tr tw1 tw2, rf tw1 tr -> rf tw2 tr ->
     tw1 = tw2).  (*Hrf_uni*)
 
+Definition partially_good_trace (ts:Trans_struct) (s:set Transaction) (po:po_strict) 
+            (rf:Rfmap) (co:Coherence) : Prop :=
+  forall x:Locations,forall t1:Transaction, forall t2:Transaction , forall t3:Transaction ,
+         (write_to_loc_l t1 x /\ write_to_loc_l t3 x /\ has_read_on_l t2 x /\ (rfmaps_on_loc_l s) t1 t2 /\ )
