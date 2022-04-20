@@ -92,34 +92,6 @@ decide_equality.
 Defined.
 Global Hint Resolve eqAction_dec : equality.
 
-(*Record Events := mkev{
-  actions : set Action}.
-
-Lemma eqEv_dec : forall (x y: Events), {x=y} + {x <> y}. 
-Proof. 
-decide_equality.
-Defined.*)
-
-(* Record Event := mkev { *)
-(*   (* eiid : Eiid; *) *)
-(*   iid : Iiid; *)
-(*   tiid  : Tid; *)
-(*   action : Action}. *)
-
-(* Check Event. *)
-
-(* Lemma eqEv_dec : forall (x y: Event), {x=y} + {x <> y}. *)
-(* Proof. *)
-(* decide_equality. *)
-(* Defined. *)
-(* Global Hint Resolve eqEv_dec : equality. *)
-
-(* Lemma eqEvc_dec : forall (x y: Event*Event), {x=y} + {x <> y}. *)
-(* Proof. *)
-(* decide_equality. *)
-(* Defined. *)
-(* Global Hint Resolve eqEvc_dec : equality. *)
-
 
 Definition Tid := nat.
 Lemma eqTid_dec : forall (x y: Tid), {x=y} + {x <> y}.
@@ -273,7 +245,23 @@ Definition rfmaps_well_formed (ts:Trans_struct) (s:set Transaction) (rf:Rfmap) :
    (forall tr tw1 tw2, rf tw1 tr -> rf tw2 tr ->
     tw1 = tw2).  (*Hrf_uni*)
 
-Definition partially_good_trace (ts:Trans_struct) (s:set Transaction) (po:po_strict) 
+Definition partially_good_trace (ts:Trans_struct) (s:set Transaction)
             (rf:Rfmap) (co:Coherence) : Prop :=
-  forall x:Locations,forall t1:Transaction, forall t2:Transaction , forall t3:Transaction ,
-         (write_to_loc_l t1 x /\ write_to_loc_l t3 x /\ has_read_on_l t2 x /\ (rfmaps_on_loc_l s) t1 t2 /\ )
+  (forall x:Location,forall t1:Transaction, forall t2:Transaction , forall t3:Transaction ,
+    (write_to_loc_l t1 x /\ write_to_loc_l t3 x /\ has_read_on_l t2 x /\ 
+      (rfmaps_on_loc_l s x rf) t1 t2 /\ (tc (rel_union (po_strict ts) rf ) t3 t2)) -> co t3 t1)
+ /\ acyclic (rel_union (rel_union (po_strict ts) rf) co).
+
+
+Definition CCv_consistent_trace (ts:Trans_struct) (s:set Transaction)
+            (rf:Rfmap) (co:Coherence): Prop :=
+  partially_good_trace ts s rf co /\ coherence_well_formed_rrestrict s co 
+  /\ rfmaps_well_formed ts s rf.
+
+
+
+
+
+
+
+
